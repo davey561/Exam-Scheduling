@@ -1,15 +1,15 @@
+import java.util.Scanner;
+import java.util.Iterator;
+import structure5.*;
 /**
   * ScheduleExams is the primary class for scheduling the input students exams so that 1) there are no conflicts and 2) no two exam-slots could be combined without conflicts.
   * I am the sole author of the work in this repository.
-  * Extra features. The first two are the first two that are recommended. The third is my own idea.
+  * Extra features. The very first is a practically meaningless, but a somewhat interesting exercise. The first two are the first two that are recommended. The third is my own idea.
+  * 0) Prints out the number of students taking each course. This would be easy if based on the file input or the subsequently built students vector, but I thought it'd be interesting to derive each course size from the graph.
   * 1) Exam slots are printed in alphabetical order based on the first class name in each slot. E.g., Slot 1: ARTH 101 ..., Slot 2: BIOL 202..., ... Slot N:
   * 2) Each student's exam schedules (set of four slot numbers) is printed.
   * 3) Study groups
   */
-
-import java.util.Scanner;
-import java.util.Iterator;
-import structure5.*;
 public class ScheduleExams{
   /**
     * Parses the student/class file, and generates exam schedule
@@ -21,16 +21,19 @@ public class ScheduleExams{
     String templine; //temporary line to be read in from file, consists of either student or course name
     String temp_studentname= null; //temporarily store's student_name as parses the file
     String [] temp_classes = new String [4]; //temporarily stores the given student's classes as it parses the file
+
     /* Graph stores information about which classes are being taken by at least one same student. Class names are vertices; an edge between two classes indicates that there is a student enrolled in both. (The integer label of that edge is the number of students enrolled in both.)*/
     Graph<String,Integer> conflictGraph = new GraphListUndirected <String,Integer>();
     MyVector<Student> students = new MyVector<Student>(); //stores data in the file, so that even when graph is destroyed, data is preserved
 
+    //BUILD THE CONFLICT GRAPH
     //Parse input into a unit for the student and their classes
     int linenum = 0; //the number of the line being processed
     int modfive; //linenum mod five, keeps track of relative position within each student's data set
     Edge<String, Integer> tempedge; //temporary edge
-    // //while there is a next line to process
+
     Assert.pre(scan.hasNextLine(), "No student data given.");
+    // while there is a next line to process
     while (scan.hasNextLine()) {
       modfive = linenum%5; //keeps track of relative position within this student's lines of info
       templine = scan.nextLine(); //store this line
@@ -41,30 +44,24 @@ public class ScheduleExams{
       //otherwise, it's a class name
       else{
         temp_classes[modfive-1] = templine;
-      //  System.out.println("added " +temp_classes[modfive-1]+ "to class array at index " + (modfive-1));
         //if the last class for this student has been read in, load each student's classes into the graph, and generate new edges if they don't already exist
         if(modfive==4){ //4 indicates that the loop is on the last class for this student
-          //System.out.println("modfive is four");
           //also store this student's record in a vector of students
           students.add(new Student(temp_studentname, temp_classes.clone()));
           //System.out.println("49: " + students);
 
           //add all classes not already in class
           for(int i = 0; i<temp_classes.length; i++){
-            //System.out.println("adding "+ temp_classes[0] + "to the graph");
             conflictGraph.add(temp_classes[i]); //should not produce duplicate, as vertices are a set, not a list
           }
           //add edge between each of these class vertices
           for(int i = 0; i<4; i++){
             for(int j = 0; j<i; j++){
-              //System.out.println("looking at class " + temp_classes[i]);
               tempedge = conflictGraph.getEdge(temp_classes[i], temp_classes[j]);
               if(tempedge==null){
-              //  System.out.println("edge between these classes (" + temp_classes[i]+ ", " + temp_classes[j] + ") doesn't yet exist");
                 conflictGraph.addEdge(temp_classes[i], temp_classes[j], 1);
               }
               else{
-              //  System.out.println("edge already exists between these two classes (" + temp_classes[i]+ ", " + temp_classes[j] + ")");
                 tempedge.setLabel(tempedge.label()+1); //increment label (weight) by 1
               }
             }
@@ -74,47 +71,40 @@ public class ScheduleExams{
       linenum++;
     }
 
-      Iterator<String> it;
-
-      // System.out.println(conflictGraph.toString());
-      // System.out.println("Edge count: " + conflictGraph.edgeCount());
-      // it = conflictGraph.neighbors("CSCI 136");
-      // while(it.hasNext()){
-      //   System.out.println(it.next().toString());
-      // }
-
-    //Generate slots and exam times by iterating through the graph
+    //Some new declarations
+      //Iterators:
+    Iterator<String> it = conflictGraph.iterator();
+    Iterator<String> neighbors;
+      //Time slots:
     MyVector <BinarySearchTree<String>> slots = new MyVector<BinarySearchTree<String>>();
     BinarySearchTree<String> temp_slot;
-    Iterator<String> neighbors;
     boolean first_iteration = true; //whether this is the first iteration
     String temp_class;
     String current_class;
-    String neighbor;
-
-    //print out number of students taking each course
-    //print out how many students are taking each class from the graph
-    System.out.println("number of students taking each course");
-    it = conflictGraph.iterator();
+    String neighbor = "";
     String course;
-    neighbor = "";
     double count;
+
+    //PRINT OUT HOW MANY STUDENTS ARE TAKING EACH COURSE
+    System.out.println("\nCOURSE SIZES:");
+    //for each course
     while(it.hasNext()){
       count = 0;
       course = it.next();
       neighbors = conflictGraph.neighbors(course);
       while(neighbors.hasNext()){
         neighbor = neighbors.next();
-        count += conflictGraph.getEdge(course, neighbor).label();
+        count += conflictGraph.getEdge(course, neighbor).label(); //increment by the number of students represented by each edge
       }
+      //count will overcount the number of students in the given course by a factor of three, given that, for each student, three edges are drawn from it (to the student's other three courses)
       System.out.println(course + " has " + (count/3) + " students.");
     }
 
+    //GENERATE SLOTS by iterating through the graph
     //while there are still nodes left in the graph
     while(conflictGraph.size()>0){
       slots.add(new BinarySearchTree<String>()); //initialize this slot
       temp_slot = slots.lastElement(); //get reference to this slot
-
       //Iterate through all other vertices in the graph. if another is not a neighbor of the given one (or any others that have been added to the temp_slot list in the meantime), add it also to temp_slot
       it = conflictGraph.iterator(); //repurpose iterator
       boolean isNeighbor; //keeps track of whether class being looked at is a neighbor
@@ -156,12 +146,14 @@ public class ScheduleExams{
         conflictGraph.remove(it.next());
       }
     }
+
+    //PRINT OUT THE LIST OF STUDENTS AND SLOTS
     Alphabetize alphabetical = new Alphabetize();
     slots.sort(alphabetical);
     //slots.print();
-    //System.out.println(slots.toString()); --this looks like crap, make a nice string representation of the slots below
+    //System.out.println(slots.toString()); --this looks messy, make a nice string representation of the slots below
     //for each slot
-    System.out.println("\nSTUDENT INFO");
+    System.out.println("\nSTUDENT INFO:");
     SortByName byName = new SortByName();
     students.sort(byName);
     System.out.println(students);
@@ -176,9 +168,10 @@ public class ScheduleExams{
     }
     System.out.println();
 
-    //for a given student, print out their exam schedule
+    //PRINT OUT EACH STUDENT'S EXAM SCHEDULE
     System.out.print("\nSTUDENT SCHEDULES (Slot #'s'):");
     Student davey;
+    //for each student
     for(int stud = 0; stud<students.size(); stud++){
       davey = students.get(stud);
       System.out.print("\n" + davey.getName() + ": ");
@@ -187,7 +180,6 @@ public class ScheduleExams{
         //for each class
         for(int i = 0; i<davey.getClasses().length; i++) {
           //if this slot contains that class
-        //  System.out.print("\nDoes slot " + (slot+1) + " contain " + davey.getClasses()[i] + "?");
           if(slots.get(slot).contains(davey.getClasses()[i])) {
             System.out.print((slot+1) + " "); //prints out slot number
           }
@@ -203,6 +195,12 @@ public class ScheduleExams{
         //0) Construct a bipartite graph where, initially there exists an edge between a student and a class when that student is taking that class.
         // 1) Count the number of classes in common between all pairs of students. Do this by revising the graph in the following way. Iterate through each of the classes. For a given class, all of its neighbors are students. Draw an edge between each of these students if it doesn't exist already, and increment the edge's label by one to represent the number of classes every two students share in common. Delete the course node afterward, then move on to the next course. Will be left with graph of students connected to each other when they overlap in classes.
         // 2) Start with a random student. Find the three other students that she shares the most classes with. Group them, remove them all from the graph, then look to another random student. Continue this process until there are less than four students left in the graph. Don't care about them, can put them in a wack group.
+
+      //Don't run on the small.txt file, too small
+      if(students.size()<8){
+        System.out.println("\nfile too small for study groups!");
+        System.exit(0);
+      }
 
       //Step 0: Construct Initial Graph
         //not dense enough to use graphmatrix, I think.
@@ -261,7 +259,8 @@ public class ScheduleExams{
 
       //Step 2 (final step): Divide students into groups. Use recursive helper method in this class.
       overlap.reset();
-      int groupsize = 2;
+      int groupsize = (int) Math.pow(students.size(), .3); //maximum group size, should be set to reasonable value for each data set
+        //this formula gives size 9 for large.txt, 2 for medium.txt
       MyVector<MyVector<String>> groups = new MyVector<MyVector<String>>(); //each inner MyVector has the four students in a group
       Vector<Integer> forMeanOverlap = new Vector<Integer>();
       //for each student:
@@ -299,10 +298,13 @@ public class ScheduleExams{
           remaining--;
         }
         overlap.remove(student1);
-        //if group has one student, discard, else, add.
+        //if group has one student, discard (those students can study alone I guess :( )), else, add.
         if(group.size()>1) groups.add(group);
       }
+
+      //Finally, print out each study group
       System.out.print("\nSTUDY GROUPS (of size " + groupsize + "):");
+      //for every study group
       for(int i = 0; i<groups.size();i++){
         System.out.print("\nGroup #" + i + ": ");
         for(int j = 0; j<groups.get(i).size(); j++){

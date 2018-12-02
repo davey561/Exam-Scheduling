@@ -1,6 +1,6 @@
 # Lab 10: Exam Scheduling
 
-### Description of Contents of Repository
+### Description of My Code in the Repository
 - *ScheduleExams*: The primary class in the repository. Designs an exam schedule for students that no student has more than one exam during the same time slot and no new time slots could be merged without new conflicts arising. ScheduleExams has a few extra features as well:
   - Sorts the time slots alphabetically by name of the first course in each.
   - Prints out an exam schedule for each of the students.
