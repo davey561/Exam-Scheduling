@@ -8,7 +8,7 @@ import structure5.*;
   * 0) Prints out the number of students taking each course. This would be easy if based on the file input or the subsequently built students vector, but I thought it'd be interesting to derive each course size from the graph.
   * 1) Exam slots are printed in alphabetical order based on the first class name in each slot. E.g., Slot 1: ARTH 101 ..., Slot 2: BIOL 202..., ... Slot N:
   * 2) Each student's exam schedules (set of four slot numbers) is printed.
-  * 3) Study groups
+  * 3) Study groups. I made a MakeStudyGroups class to deal with this part. This is the feature I spent the most time on.
   */
 public class ScheduleExams{
   /**
