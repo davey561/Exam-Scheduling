@@ -15,6 +15,15 @@ public class ScheduleExams{
     * Parses the student/class file, and generates exam schedule
     * @param args the lines of text in the input file, should be input in command line via: java ScheduleExams < [filename]
     */
+
+
+/* $
+  This main method is cumbersome, would've been nice to separate out into
+  several helper methods
+  (-1)
+
+*/
+
   public static void main(String[] args) {
     //Declarations
     Scanner scan = new Scanner(System.in);
