@@ -1,3 +1,15 @@
+# Lab 10 High-level Feedback
+ * Completed 3 extensions:
+   * printing out a schedule for each individual student in alphabetical order.
+   * printed out the number of students enrolled in each course.
+   * Students are assigned to study groups based on common classes they share.
+ * One point is taken off because of an overly long main method in the main Scheduler class that should have been broken up into helper methods.
+ * Other than that an amazing job implementing and applying learned concepts!
+
+__Lab 10 Score: 19 + 2 = 21/20__
+
+
+
 # Lab 10: Exam Scheduling
 
 ### Description of My Code in the Repository
